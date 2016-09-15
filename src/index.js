@@ -22,6 +22,8 @@ module.exports = function (options) {
       `${rootPath}/config/defaults.json`
     ]);
 
+  base.rootPath = rootPath;
+
   // Util service
   base.utils = options.utils || require('./modules/utils')(base);
 

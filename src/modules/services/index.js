@@ -3,9 +3,12 @@ const Wreck = require('wreck');
 const AuthJWT = require('hapi-auth-jwt');
 const uuid = require('node-uuid').v4;
 const sessionCache = require('session-cache');
+const path = require('path');
 
 const goodWinston = require('hapi-good-winston').goodWinston;
 const logLvl = require('hapi-good-winston').logLvl;
+
+const glob = require('glob');
 
 // TODO: Refactor to split the service and the transports
 
@@ -322,6 +325,21 @@ module.exports = function (base) {
     for (var op of module) {
       service.add(op);
     }
+  };
+
+  // For given folder name each file exports an operation. Name resolved to filename if no one is provided
+  service.addOperations = function(folder, base){
+
+    glob(`${folder}/*.js`, {}, (err, files) => {
+      files.forEach( (file) => {
+      var operation = require(path.normalize(`./${base.rootPath}/${file}`))(base);
+      if (!operation.hasOwnProperty("name")){
+        operation.name = path.basename(file, '.js');
+      }
+      service.add(operation);
+      })
+    });
+
   };
 
   // Add a ping operation to allow health checks and keep alives
